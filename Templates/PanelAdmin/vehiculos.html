@@ -1,40 +1,55 @@
 {% extends 'PanelAdmin/base_panel.html' %}
-
 {% block title %}Vehículos - HansMoreno{% endblock %}
-{% block menu_dashboard %}active{% endblock %}
+{% block menu_vehiculos %}active{% endblock %}
 
 {% block content %}
 
 <div class="page-header">
-    <h1>Gestor de vehículos</h1>
-    <p>Listado de camiones registrados</p>
+    <h1>Flota de Vehículos</h1>
+    <p>Asignación de conductores y ubicación</p>
 </div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div style="padding: 10px; background: #d4edda; color: #155724; margin-bottom: 15px; border-radius: 5px;">
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
 
 <div class="stats-grid">
-
     {% for vehiculo in vehiculos %}
-    <div class="card stats-card">
+    <div class="card stats-card" style="display: flex; flex-direction: column; gap: 10px;">
         <div class="card-header">
-            <span>
-                {{ vehiculo.modelo }}<br>
-                <strong>Patente: {{ vehiculo.patente }}</strong>
-            </span>
-
-            <!-- Imagen fija referencial -->
-            <img src="https://img.freepik.com/fotos-premium/furgoneta-comercial-mediana-blanca-sobre-fondo-blanco-cuerpo-blanco-aplicar-sus-inscripciones-diseno-logotipos-ilustracion-3d_101266-25103.jpg?semt=ais_hybrid&w=740&q=80"
-                 style="max-width: 200px;" alt="camion">
+            <div style="font-weight: bold; font-size: 1.2em;">{{ vehiculo.patente }}</div>
+            <div style="color: #666;">{{ vehiculo.modelo }}</div>
         </div>
 
-        <div class="stats-value">
-            Kilometraje: {{ vehiculo.kilometraje }} km
+        <!-- Simulación de Mapa / Ubicación -->
+        <div style="background: #eee; height: 100px; display: flex; align-items: center; justify-content: center; border-radius: 5px; font-size: 0.9em; color: #555;">
+            📍 <a href="https://www.google.com/maps?q=-33.4489,-70.6693" target="_blank">Ver ubicación en tiempo real</a>
         </div>
 
-        <div class="stats-change">
-           Conductor ID: {{ vehiculo.conductor_id }}
-        </div>
+        <hr style="border: 0; border-top: 1px solid #eee; width: 100%;">
+
+        <!-- Formulario de Asignación -->
+        <form method="post" style="display: flex; flex-direction: column; gap: 5px;">
+            {% csrf_token %}
+            <input type="hidden" name="id_vehiculo" value="{{ vehiculo.id_vehiculo }}">
+            
+            <label style="font-size: 0.8em; color: #888;">Conductor Asignado:</label>
+            <select name="conductor_asignado" style="padding: 5px;">
+                <option value="">-- Sin Asignar --</option>
+                {% for c in conductores %}
+                    <option value="{{ c.id_usuario }}" {% if vehiculo.conductor.id_usuario == c.id_usuario %}selected{% endif %}>
+                        {{ c.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+            
+            <button type="submit" class="btn-primary" style="margin-top: 5px; font-size: 0.9em;">Guardar Cambios</button>
+        </form>
     </div>
     {% endfor %}
-
 </div>
-
 {% endblock %}

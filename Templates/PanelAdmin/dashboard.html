@@ -2,124 +2,186 @@
 
 {% block title %}Dashboard - HansMoreno{% endblock %}
 {% block menu_dashboard %}active{% endblock %}
+{% block header_title %}Panel de Control{% endblock %}
 
 {% block content %}
 
-<div class="page-header">
-    <h1>Panel Principal</h1>
-    <p>Resumen general de las operaciones</p>
+<div class="row mb-4">
+    
+    <div class="col-xl-3 col-sm-6 mb-4">
+        <div class="card-material">
+            <div class="card-icon-floating grad-blue">
+                <i class="material-icons">directions_car</i>
+            </div>
+            <div class="card-content-right">
+                <p class="text-label">En Ruta Ahora</p>
+                <h4 class="text-value">{{ entregas_count }}</h4>
+            </div>
+            <div class="card-footer-custom">
+                <span class="text-success fw-bold">Activas</span> en este momento
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6 mb-4">
+        <div class="card-material">
+            <div class="card-icon-floating grad-dark">
+                <i class="material-icons">add_road</i>
+            </div>
+            <div class="card-content-right">
+                <p class="text-label">Distancia Histórica</p>
+                <h4 class="text-value">{{ distancia_total }} <small style="font-size:0.6em">km</small></h4>
+            </div>
+            <div class="card-footer-custom">
+                Kilómetros recorridos
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6 mb-4">
+        <div class="card-material">
+            <div class="card-icon-floating grad-green">
+                <i class="material-icons">payments</i>
+            </div>
+            <div class="card-content-right">
+                <p class="text-label">Gasto Combustible</p>
+                <h4 class="text-value">${{ costo_combustible }}</h4>
+            </div>
+            <div class="card-footer-custom">
+                Total histórico
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6 mb-4">
+        <div class="card-material">
+            <div class="card-icon-floating grad-info">
+                <i class="material-icons">trending_up</i>
+            </div>
+            <div class="card-content-right">
+                <p class="text-label">Rendimiento</p>
+                <h4 class="text-value">{{ eficiencia }} <small style="font-size:0.6em">km/L</small></h4>
+            </div>
+            <div class="card-footer-custom">
+                Eficiencia de flota
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Tarjetas superiores -->
-<div class="stats-grid">
-
-    <div class="card stats-card">
-        <div class="card-header">
-            <span>Entregas Activas</span>
-            <div class="icon-pill">🚚</div>
-        </div>
-
-        <!-- {{ entregas_activas }} -->
-        <div class="stats-value">0</div>
-
-        <!-- {{ cambio_entregas }} -->
-        <div class="stats-change positivo">---</div>
-    </div>
-
-    <div class="card stats-card">
-        <div class="card-header">
-            <span>Distancia Total</span>
-            <div class="icon-pill">🔗</div>
-        </div>
-
-        <!-- {{ distancia_total }} -->
-        <div class="stats-value">0 <span class="unit">km</span></div>
-
-        <!-- {{ cambio_distancia }} -->
-        <div class="stats-change positivo">---</div>
-    </div>
-
-    <div class="card stats-card">
-        <div class="card-header">
-            <span>Costo de Combustible</span>
-            <div class="icon-pill">⛽</div>
-        </div>
-
-        <!-- {{ costo_combustible }} -->
-        <div class="stats-value">$0</div>
-
-        <!-- {{ cambio_combustible }} -->
-        <div class="stats-change negativo">---</div>
-    </div>
-
-    <div class="card stats-card">
-        <div class="card-header">
-            <span>Eficiencia</span>
-            <div class="icon-pill">📈</div>
-        </div>
-
-        <!-- {{ eficiencia }} -->
-        <div class="stats-value">0 km/L</div>
-
-        <!-- {{ cambio_eficiencia }} -->
-        <div class="stats-change positivo">---</div>
-    </div>
-
-</div>
-
-<!-- Contenedor inferior -->
-<div class="lower-grid">
-
-    <div class="card large-card">
-        <div class="card-header-between">
-            <h3>Entregas Activas</h3>
-            <a href="#">Ver todas</a>
-        </div>
-
-        <!--
-        {% for entrega in entregas %}
-            <div class="delivery-item">
-                <div>
-                    <strong>{{ entrega.codigo }}</strong>
-                    <p>{{ entrega.destino }}</p>
+<div class="row">
+    
+    <div class="col-lg-8 col-md-12 mb-4">
+        <div class="card-material">
+            <div class="grad-blue shadow-primary border-radius-lg py-3 pe-1" 
+                 style="position: relative; top: -20px; width: 95%; margin: 0 auto; border-radius: 8px; padding: 15px; box-shadow: 0 4px 20px 0 rgba(0,0,0,0.14), 0 7px 10px -5px rgba(26, 115, 232, 0.4);">
+                <div class="chart">
+                    <canvas id="chart-bars" class="chart-canvas" height="170"></canvas>
                 </div>
-
-                <span class="status 
-                    {% if entrega.estado == 'En tránsito' %}in-transit
-                    {% elif entrega.estado == 'Planificada' %}planned
-                    {% endif %}
-                ">
-                    {{ entrega.estado }}
-                </span>
-
-                <span class="driver">
-                    {{ entrega.conductor }} • {{ entrega.vehiculo }}
-                </span>
             </div>
-
-            {% if not forloop.last %}
-                <hr>
-            {% endif %}
-        {% endfor %}
-        -->
-
-        <!-- Temporales mientras no hay DB -->
-        <div class="delivery-item">
-            <div>
-                <strong>---</strong>
-                <p>Destino</p>
+            <div class="card-body p-3 pt-0">
+                <h6 class="mb-0">Gasto Diario de Combustible</h6>
+                <p class="text-sm text-secondary">
+                    <i class="material-icons text-success text-sm align-middle">arrow_upward</i>
+                    <span class="font-weight-bold">Últimos 7 días</span>
+                </p>
             </div>
-            <span class="status planned">---</span>
-            <span class="driver">---</span>
         </div>
-
     </div>
 
-    <div class="card large-card">
-        <h3>Tendencia de Consumo de Combustible</h3>
-        <div class="chart-placeholder">Área para gráfico</div>
+    <div class="col-lg-4 col-md-12 mb-4">
+        <div class="card-material h-100">
+            <div class="p-3 pb-0">
+                <h6>En Tránsito Reciente</h6>
+            </div>
+            <div class="p-3">
+                {% for entrega in entregas_lista %}
+                <div class="d-flex align-items-center mb-3">
+                    <div class="me-3">
+                        <div class="grad-dark text-center border-radius-md d-flex align-items-center justify-content-center" 
+                             style="width:40px; height:40px; border-radius:50%; color:white; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                            <i class="material-icons" style="font-size: 20px;">directions_car</i>
+                        </div>
+                    </div>
+                    <div class="d-flex flex-column justify-content-center">
+                        <h6 class="mb-0 text-sm">{{ entrega.vehiculo.patente }}</h6>
+                        <p class="text-xs text-secondary mb-0">{{ entrega.ubicacion_fin_txt }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-sm text-center text-secondary">No hay autos en ruta.</p>
+                {% endfor %}
+            </div>
+        </div>
     </div>
-
 </div>
+
+{{ fechas_chart|json_script:"datos-fechas" }}
+{{ montos_chart|json_script:"datos-montos" }}
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const fechas = JSON.parse(document.getElementById('datos-fechas').textContent);
+        const montos = JSON.parse(document.getElementById('datos-montos').textContent);
+
+        var ctx = document.getElementById("chart-bars").getContext("2d");
+
+        new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: fechas,
+                datasets: [{
+                    label: "Gasto",
+                    tension: 0.4,
+                    borderWidth: 0,
+                    borderRadius: 4,
+                    borderSkipped: false,
+                    backgroundColor: "rgba(255, 255, 255, 0.8)",
+                    data: montos,
+                    maxBarThickness: 10
+                }],
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: {
+                        grid: {
+                            drawBorder: false,
+                            display: true,
+                            drawOnChartArea: true,
+                            drawTicks: false,
+                            borderDash: [5, 5],
+                            color: 'rgba(255, 255, 255, .2)'
+                        },
+                        ticks: {
+                            suggestedMin: 0,
+                            suggestedMax: 500,
+                            beginAtZero: true,
+                            padding: 10,
+                            font: { size: 12, family: "Roboto", style: 'normal', lineHeight: 2 },
+                            color: "#fff"
+                        },
+                    },
+                    x: {
+                        grid: {
+                            drawBorder: false,
+                            display: false,
+                            drawOnChartArea: false,
+                            drawTicks: false,
+                        },
+                        ticks: {
+                            display: true,
+                            color: '#f8f9fa',
+                            padding: 10,
+                            font: { size: 12, family: "Roboto", style: 'normal', lineHeight: 2 },
+                        }
+                    },
+                },
+            },
+        });
+    });
+</script>
 
 {% endblock %}

@@ -3,75 +3,120 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}Panel - HansMoreno{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}HansMoreno ERP{% endblock %}</title>
+    
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
-    <link rel="stylesheet" href="{% static 'CSS/estilos.css' %}">
+    <style>
+        @font-face {
+            font-family: 'Material Icons';
+            font-style: normal;
+            font-weight: 400;
+            src: url(https://fonts.gstatic.com/s/materialicons/v139/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
+        }
+        .material-icons { font-family: 'Material Icons'; font-weight: normal; font-style: normal; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; word-wrap: normal; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; -moz-osx-font-smoothing: grayscale; font-feature-settings: 'liga'; }
+
+        :root {
+            --hans-blue: #1A73E8;
+            --sidebar-dark: #1f1f1f;
+            --bg-light: #dbe1e8; 
+        }
+        
+        body { font-family: 'Roboto', sans-serif; background-color: var(--bg-light); margin: 0; }
+        
+        .sidebar {
+            height: 100vh; width: 260px; position: fixed; top: 0; left: 0;
+            background: var(--sidebar-dark); z-index: 100;
+            display: flex; flex-direction: column;
+            box-shadow: 4px 0 10px rgba(0,0,0,0.2);
+        }
+
+        .sidebar-brand {
+            height: 70px; display: flex; align-items: center; padding: 0 25px;
+            color: white; font-weight: bold; font-size: 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1); background: var(--sidebar-dark);
+        }
+        .sidebar-brand i { margin-right: 10px; font-size: 24px; color: var(--hans-blue); }
+
+        .nav-container { padding: 20px 15px; overflow-y: auto; }
+
+        .nav-link-custom {
+            color: #a9b2c3; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px;
+            display: flex; align-items: center; text-decoration: none;
+            transition: all 0.3s; font-size: 0.95rem;
+        }
+        .nav-link-custom:hover { background: rgba(255,255,255,0.05); color: white; transform: translateX(5px); }
+        .nav-link-custom.active { 
+            background: var(--hans-blue); color: white; 
+            box-shadow: 0 4px 15px rgba(26, 115, 232, 0.4);
+        }
+        .nav-link-custom i { margin-right: 15px; font-size: 22px; width: 24px; text-align: center; }
+
+        .main-content { margin-left: 260px; padding: 30px; }
+        
+        .card-material {
+            background: white; border: 1px solid rgba(0,0,0,0.05); border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            position: relative; margin-top: 30px; overflow: visible;
+        }
+        .card-icon-floating {
+            width: 64px; height: 64px; border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            position: absolute; top: -20px; left: 20px; color: white;
+            box-shadow: 0 4px 20px 0 rgba(0,0,0,0.14), 0 7px 10px -5px rgba(0,0,0,0.4);
+        }
+        .card-content-right { text-align: right; padding: 15px 20px; padding-top: 5px; }
+        .text-label { color: #7b809a; font-size: 0.9rem; margin: 0; font-weight: 500; }
+        .text-value { color: #344767; font-size: 1.6rem; font-weight: 700; margin: 0; }
+        .card-footer-custom { border-top: 1px solid #f0f2f5; padding: 15px 20px; color: #7b809a; font-size: 0.85rem; }
+
+        .grad-blue, .bg-gradient-primary { background: linear-gradient(195deg, #49a3f1 0%, #1A73E8 100%); color: white; }
+        .grad-green, .bg-gradient-success { background: linear-gradient(195deg, #66BB6A 0%, #43A047 100%); color: white; }
+        .grad-dark, .bg-gradient-dark { background: linear-gradient(195deg, #42424a 0%, #191919 100%); color: white; }
+        .grad-info, .bg-gradient-info { background: linear-gradient(195deg, #26c6da 0%, #00acc1 100%); color: white; }
+        .grad-warning, .bg-gradient-warning { background: linear-gradient(195deg, #ffa726 0%, #fb8c00 100%); color: white; }
+        .bg-gradient-secondary { background: linear-gradient(195deg, #747b8a 0%, #495361 100%); color: white; }
+
+    </style>
 </head>
 <body>
-
-<div class="app">
-
-    <!-- Barra superior -->
-    <header class="topbar">
-        <div class="topbar-left">
-            <div class="logo-icon">🚚</div>
-            <span class="logo-text">HansMoreno</span>
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <i class="material-icons">directions_car</i>
+            <span>HansMoreno</span>
         </div>
-
-        <div class="topbar-right">
-            <button class="icon-btn">⟳</button>
-            <button class="icon-btn">🌙</button>
-            <div class="user-badge">FM</div>
+        <div class="nav-container">
+            <a href="{% url 'panel_dashboard' %}" class="nav-link-custom {% block menu_dashboard %}{% endblock %}"><i class="material-icons">dashboard</i> Dashboard</a>
+            <a href="{% url 'panel_conductores' %}" class="nav-link-custom {% block menu_conductores %}{% endblock %}"><i class="material-icons">people</i> Conductores</a>
+            <a href="{% url 'panel_vehiculos' %}" class="nav-link-custom {% block menu_vehiculos %}{% endblock %}"><i class="material-icons">directions_bus</i> Vehículos</a>
+            <a href="{% url 'panel_rutas' %}" class="nav-link-custom {% block menu_rutas %}{% endblock %}"><i class="material-icons">map</i> Rutas Activas</a>
+            <a href="{% url 'panel_combustible' %}" class="nav-link-custom {% block menu_combustible %}{% endblock %}"><i class="material-icons">local_gas_station</i> Combustible</a>
+            <a href="{% url 'panel_reportes' %}" class="nav-link-custom {% block menu_reportes %}{% endblock %}"><i class="material-icons">assessment</i> Reportes</a>
         </div>
-    </header>
+        
+        <div style="padding: 20px; margin-top: auto; border-top: 1px solid rgba(255,255,255,0.1);">
+            <form action="{% url 'logout' %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="nav-link-custom w-100 border-0 text-start" style="background: rgba(244, 67, 54, 0.1); color: #f44336;">
+                    <i class="material-icons" style="color: #f44336;">logout</i> Cerrar Sesión
+                </button>
+            </form>
+        </div>
+    </aside>
 
-    <div class="main">
-
-        <!-- Barra lateral -->
-        <aside class="sidebar">
-            <h3 class="nav-title">Navegación</h3>
-            <ul class="nav-list">
-
-                <!-- Dashboard -->
-                <li class="nav-item {% block menu_dashboard %}{% endblock %}">
-                    <a href="{% url 'panel_dashboard' %}">Dashboard</a>
-                </li>
-
-                <!-- Rutas -->
-                <li class="nav-item {% block menu_rutas %}{% endblock %}">
-                    <a href="{% url 'panel_rutas' %}">Rutas</a>
-                </li>
-
-                <!-- Vehículos -->
-                <li class="nav-item {% block menu_vehiculos %}{% endblock %}">
-                    <a href="{% url 'panel_vehiculos' %}">Vehículos</a>
-                </li>
-
-                <!-- Combustible -->
-                <li class="nav-item {% block menu_combustible %}{% endblock %}">
-                    <a href="{% url 'panel_combustible' %}">Control Combustible</a>
-                </li>
-
-                <!-- Reportes -->
-                <li class="nav-item {% block menu_reportes %}{% endblock %}">
-                    <a href="{% url 'panel_reportes' %}">Reportes</a>
-                </li>
-
-                <!-- Configuración -->
-                <li class="nav-item {% block menu_config %}{% endblock %}">
-                    <a href="#">Configuración</a>
-                </li>
-
-            </ul>
-        </aside>
-
-        <!-- Contenido dinámico -->
-        <section class="content">
-            {% block content %}{% endblock %}
-        </section>
-
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+            <h2 style="color: #344767; font-weight: 700;">{% block header_title %}Resumen{% endblock %}</h2>
+            <div class="d-flex align-items-center text-secondary">
+                <div class="text-end me-3"><span class="d-block fw-bold text-dark">Admin</span><span class="text-xs">Conectado</span></div>
+                <i class="material-icons text-dark" style="font-size: 32px;">account_circle</i>
+            </div>
+        </div>
+        {% block content %}{% endblock %}
     </div>
-</div>
-
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
 </html>

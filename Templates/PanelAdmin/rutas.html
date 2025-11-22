@@ -1,70 +1,92 @@
 {% extends 'PanelAdmin/base_panel.html' %}
 
-{% block title %}Dashboard - HansMoreno{% endblock %}
-{% block menu_dashboard %}active{% endblock %}
+{% block title %}Rutas - HansMoreno{% endblock %}
+{% block menu_rutas %}active{% endblock %}
+{% block header_title %}Rutas Activas{% endblock %}
+
 {% block content %}
-<div class="page-header">
-    <h1>Gestor de rutas</h1>
-    <p>Rutas actuales</p>
-   
-</div>
-<div class="routes-container">
-    <input type="text" class="search-input" placeholder="Buscar rutas...">
-     <table class="routes-table">
-        <thead>
-            <tr>
-                <th>ID Ruta</th>
-                <th>Origen</th>
-                <th>Destino</th>
-                <th>Distancia</th>
-                <th>Estado</th>
-                <th>Vehículo</th>
-                <th>Conductor</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
 
- <tbody>
-            {% for r in recorridos %}
-            <tr>
-                <td>{{ r.id_recorrido }}</td>
-                <td>{{ r.ubicacion_inicio_txt }}</td>
-                <td>{{ r.ubicacion_fin_txt }}</td>
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            <div class="alert alert-success text-white mb-4 shadow-sm" style="border:none;">
+                <i class="material-icons text-sm me-2">check_circle</i> {{ message }}
+            </div>
+        {% else %}
+            <div class="alert alert-danger text-white mb-4 shadow-sm" style="border:none;">
+                <i class="material-icons text-sm me-2">error_outline</i> {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
 
-                <td>
-                    {% if r.distancia %}
-                        {{ r.distancia }} km
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
+<div class="card-material">
+    <div class="p-4">
+        <div class="table-responsive">
+            <table class="table align-items-center mb-0">
+                <thead>
+                    <tr>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">ID / Origen</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Destino</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Vehículo</th>
+                        <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Conductor</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Estado</th>
+                        <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in recorridos %}
+                    <tr>
+                        <td>
+                            <div class="d-flex px-2 py-1">
+                                <div class="d-flex flex-column justify-content-center">
+                                    <h6 class="mb-0 text-sm">Ruta #{{ r.id_recorrido }}</h6>
+                                    <p class="text-xs text-secondary mb-0">Desde: {{ r.ubicacion_inicio_txt }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if r.hora_fin %}
+                                <p class="text-xs font-weight-bold mb-0">{{ r.ubicacion_fin_txt }}</p>
+                            {% else %}
+                                <p class="text-xs font-weight-bold mb-0">{{ r.ubicacion_fin_txt }}</p>
+                                <span class="text-success text-xs" style="display: flex; align-items: center; gap: 5px;">
+                                    <i class="material-icons text-xs">directions_car</i> En camino...
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <p class="text-xs font-weight-bold mb-0">{{ r.vehiculo.patente }}</p>
+                            <p class="text-xs text-secondary mb-0">{{ r.vehiculo.modelo }}</p>
+                        </td>
+                        <td>
+                            <p class="text-xs font-weight-bold mb-0">{{ r.conductor.nombre }}</p>
+                        </td>
+                        
+                        <td class="align-middle text-center text-sm">
+                            <span class="badge badge-sm bg-gradient-info">En tránsito</span>
+                        </td>
 
-                <!-- Estado: por ahora fijo, luego podemos usar lógica real -->
-                <td><span class="badge in-transit">En tránsito</span></td>
-
-                <td>
-                    {{ r.vehiculo.patente }} ({{ r.vehiculo.id_vehiculo }})
-                </td>
-
-                <td>{{ r.conductor.nombre }}</td>
-
-                <td class="actions-cell">
-                    <span class="action-icon">👁️</span>
-                    <span class="action-icon">✏️</span>
-                    <span class="action-icon">🗑️</span>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="8">No hay recorridos registrados.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-
-
-
-
+                        <td class="align-middle text-center">
+                            <a href="{% url 'eliminar_ruta' r.id_recorrido %}" 
+                               class="btn btn-link text-danger mb-0 px-2" 
+                               onclick="return confirm('¿Estás seguro de eliminar la Ruta #{{ r.id_recorrido }}?');" 
+                               title="Eliminar registro">
+                                <i class="material-icons text-sm">delete</i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center p-4 text-secondary">
+                            No hay vehículos viajando en este momento.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
 
 {% endblock %}

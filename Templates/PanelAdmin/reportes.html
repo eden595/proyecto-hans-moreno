@@ -2,57 +2,142 @@
 
 {% block title %}Reportes - HansMoreno{% endblock %}
 {% block menu_reportes %}active{% endblock %}
+{% block header_title %}Generador de Reportes{% endblock %}
 
 {% block content %}
 
-<div class="page-header">
-    <h1>Reportes y Analítica</h1>
-    <p>Analiza el rendimiento de la flota y los costos de operación</p>
-</div>
-
-<!-- Filtro de periodo (se ve como tarjeta simple) -->
-<div class="card large-card">
-    <div class="card-header-between">
-        <h3>Período de análisis</h3>
-        <ul class="nav-list" style="display: flex; gap: 15px; margin: 0;">
-            <li class="nav-item active">Semanal</li>
-            <li class="nav-item">Mensual</li>
-            <li class="nav-item">Anual</li>
-        </ul>
+<div class="card-material mb-4">
+    <div class="p-4">
+        <form method="get" id="filterForm" class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-bold text-secondary text-xs">Fecha Inicio</label>
+                <input type="date" name="fecha_inicio" value="{{ filtros.inicio }}" class="form-control" style="border:1px solid #d2d6da; padding:8px;">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold text-secondary text-xs">Fecha Fin</label>
+                <input type="date" name="fecha_fin" value="{{ filtros.fin }}" class="form-control" style="border:1px solid #d2d6da; padding:8px;">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-bold text-secondary text-xs">Conductor</label>
+                <select name="usuario" class="form-control" style="border:1px solid #d2d6da; padding:8px;">
+                    <option value="">Todos los conductores</option>
+                    {% for u in usuarios %}
+                        <option value="{{ u.id_usuario }}" {% if filtros.user == u.id_usuario|stringformat:"i" %}selected{% endif %}>
+                            {{ u.nombre }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100 mb-0" style="background-color: #1A73E8;">Filtrar</button>
+                
+                <a href="{% url 'generar_pdf' %}?{{ request.GET.urlencode }}" target="_blank" class="btn btn-dark w-100 mb-0">
+                    <i class="material-icons text-sm me-1">picture_as_pdf</i> PDF
+                </a>
+            </div>
+        </form>
     </div>
 </div>
 
-<!-- Primera fila de tarjetas de reporte -->
-<div class="stats-grid" style="margin-top: 20px;">
-    <div class="card large-card">
-        <div class="card-header-between">
-            <h3>Análisis de costo de combustible</h3>
-            <span></span>
-        </div>
-        <div class="chart-placeholder">
-            Gráfico de costo semanal de combustible
+<div class="row mb-4">
+    <div class="col-xl-4 col-sm-6 mb-4">
+        <div class="card-material">
+            <div class="card-icon-floating grad-dark">
+                <i class="material-icons">add_road</i>
+            </div>
+            <div class="card-content-right">
+                <p class="text-label">Distancia Recorrida</p>
+                <h4 class="text-value">{{ total_kms }} <small>km</small></h4>
+            </div>
+            <div class="card-footer-custom">
+                Total en periodo seleccionado
+            </div>
         </div>
     </div>
 
-    <div class="card large-card">
-        <div class="card-header-between">
-            <h3>Eficiencia de rutas</h3>
-            <span></span>
+    <div class="col-xl-4 col-sm-6 mb-4">
+        <div class="card-material">
+            <div class="card-icon-floating grad-green">
+                <i class="material-icons">attach_money</i>
+            </div>
+            <div class="card-content-right">
+                <p class="text-label">Gasto Combustible</p>
+                <h4 class="text-value">${{ total_dinero }}</h4>
+            </div>
+            <div class="card-footer-custom">
+                Costo operativo estimado
+            </div>
         </div>
-        <div class="chart-placeholder">
-            Métricas de eficiencia de rutas
+    </div>
+
+    <div class="col-xl-4 col-sm-6 mb-4">
+        <div class="card-material">
+            <div class="card-icon-floating grad-info">
+                <i class="material-icons">opacity</i>
+            </div>
+            <div class="card-content-right">
+                <p class="text-label">Litros Cargados</p>
+                <h4 class="text-value">{{ total_litros }} <small>L</small></h4>
+            </div>
+            <div class="card-footer-custom">
+                Consumo de flota
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Tarjeta grande para distribución de rutas -->
-<div class="card large-card">
-    <div class="card-header-between">
-        <h3>Distribución de rutas</h3>
-        <span></span>
+<div class="card-material">
+    <div class="p-4 pb-2">
+        <h6 class="mb-0">Detalle de Recorridos</h6>
+        <p class="text-sm text-secondary">Desglose viaje por viaje</p>
     </div>
-    <div class="chart-placeholder">
-        Mapa / distribución de recorridos
+    <div class="table-responsive p-0">
+        <table class="table align-items-center mb-0 table-hover">
+            <thead>
+                <tr>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha</th>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Conductor / Vehículo</th>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Ruta</th>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Horario</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Kms</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in recorridos %}
+                <tr>
+                    <td class="align-middle">
+                        <div class="d-flex px-2 py-1">
+                            <div class="d-flex flex-column justify-content-center">
+                                <h6 class="mb-0 text-sm">{{ r.fecha|date:"d/m/Y" }}</h6>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="align-middle">
+                        <p class="text-xs font-weight-bold mb-0">{{ r.conductor.nombre }}</p>
+                        <p class="text-xs text-secondary mb-0">{{ r.vehiculo.patente }}</p>
+                    </td>
+                    <td class="align-middle">
+                        <span class="text-secondary text-xs font-weight-bold">{{ r.ubicacion_inicio_txt }}</span>
+                        <i class="material-icons text-xs mx-1 text-muted" style="vertical-align: middle;">arrow_forward</i>
+                        <span class="text-secondary text-xs font-weight-bold">{{ r.ubicacion_fin_txt }}</span>
+                    </td>
+                    <td class="align-middle">
+                        <p class="text-xs font-weight-bold mb-0">{{ r.hora_inicio }}</p>
+                        <p class="text-xs text-secondary mb-0">
+                            {% if r.hora_fin %}{{ r.hora_fin }}{% else %}--:--{% endif %}
+                        </p>
+                    </td>
+                    <td class="align-middle text-center">
+                        <span class="text-secondary text-xs font-weight-bold">{{ r.distancia }} km</span>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center p-4 text-secondary">No se encontraron recorridos con estos filtros.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 

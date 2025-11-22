@@ -2,121 +2,183 @@
 
 {% block title %}Combustible - HansMoreno{% endblock %}
 {% block menu_combustible %}active{% endblock %}
+{% block header_title %}Control de Combustible{% endblock %}
 
 {% block content %}
 
-<div class="page-header">
-    <h1>Seguimiento de Combustible</h1>
-    <p>Monitorea el consumo y los costos de la flota</p>
+<!-- Mensajes -->
+{% if messages %}
+    {% for message in messages %}
+        {% if message.tags == 'success' %}
+            <div class="alert alert-success text-white mb-4 shadow-sm" style="border:none;">
+                <i class="material-icons text-sm me-2">check_circle</i> {{ message }}
+            </div>
+        {% else %}
+            <div class="alert alert-danger text-white mb-4 shadow-sm" style="border:none;">
+                <i class="material-icons text-sm me-2">error_outline</i> {{ message }}
+            </div>
+        {% endif %}
+    {% endfor %}
+{% endif %}
+
+<div class="row mb-4">
+    <div class="col-xl-3 col-sm-6 mb-4">
+        <div class="card-material">
+            <div class="card-icon-floating grad-green">
+                <i class="material-icons">payments</i>
+            </div>
+            <div class="card-content-right">
+                <p class="text-label">Gasto Total</p>
+                <h4 class="text-value">${{ kpis.gasto }}</h4>
+            </div>
+            <div class="card-footer-custom">
+                <span class="text-success text-sm font-weight-bolder">Histórico</span> acumulado
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6 mb-4">
+        <div class="card-material">
+            <div class="card-icon-floating grad-blue">
+                <i class="material-icons">analytics</i>
+            </div>
+            <div class="card-content-right">
+                <p class="text-label">Promedio / L</p>
+                <h4 class="text-value">${{ kpis.promedio }}</h4>
+            </div>
+            <div class="card-footer-custom">
+                Eficiencia de costo
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6 mb-4">
+        <div class="card-material">
+            <div class="card-icon-floating grad-warning">
+                <i class="material-icons">opacity</i>
+            </div>
+            <div class="card-content-right">
+                <p class="text-label">Litros Totales</p>
+                <h4 class="text-value">{{ kpis.litros }} <small style="font-size:0.6em">L</small></h4>
+            </div>
+            <div class="card-footer-custom">
+                Volumen total
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-sm-6 mb-4">
+        <div class="card-material">
+            <div class="card-icon-floating grad-dark">
+                <i class="material-icons">receipt_long</i>
+            </div>
+            <div class="card-content-right">
+                <p class="text-label">Cargas</p>
+                <h4 class="text-value">{{ kpis.registros }}</h4>
+            </div>
+            <div class="card-footer-custom">
+                Transacciones
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Tarjetas superiores -->
-<div class="stats-grid">
-    <div class="card stats-card">
-        <div class="card-header">
-            <span>Gasto total</span>
-        </div>
-        <div class="stats-value">—</div>
-        <div class="stats-change">Monto total en combustible</div>
-    </div>
-
-    <div class="card stats-card">
-        <div class="card-header">
-            <span>Costo prom. / Litro</span>
-        </div>
-        <div class="stats-value">—</div>
-        <div class="stats-change">Costo promedio</div>
-    </div>
-
-    <div class="card stats-card">
-        <div class="card-header">
-            <span>Litros totales</span>
-        </div>
-        <div class="stats-value">—</div>
-        <div class="stats-change">Litros registrados</div>
-    </div>
-
-    <div class="card stats-card">
-        <div class="card-header">
-            <span>Registros</span>
-        </div>
-        <div class="stats-value">—</div>
-        <div class="stats-change">Entradas en total</div>
-    </div>
-</div>
-
-<!-- Form para agregar registro -->
-<div class="card large-card">
-    <div class="card-header-between">
-        <h3>Agregar registro de combustible</h3>
-        <span></span>
-    </div>
-
-    <form method="post">
-        {% csrf_token %}
-
-        <div class="delivery-item">
-            <div style="flex: 1;">
-                <label>Vehículo</label>
-                <select name="vehiculo" style="width: 100%;">
-                    <option value="">Seleccionar…</option>
-                </select>
-            </div>
-
-            <div style="flex: 1;">
-                <label>Litros</label>
-                <input type="number" name="litros" step="0.1" style="width: 100%;">
-            </div>
-
-            <div style="flex: 1;">
-                <label>Costo ($)</label>
-                <input type="number" name="costo" step="0.1" style="width: 100%;">
-            </div>
-
-            <div style="flex: 1;">
-                <label>Odómetro (km)</label>
-                <input type="number" name="odometro" step="0.1" style="width: 100%;">
-            </div>
-
-            <div style="flex: 1;">
-                <button type="submit" class="btn-primary">
-                    + Agregar
-                </button>
+<div class="row">
+    
+    <div class="col-md-12 mb-4">
+        <div class="card-material" style="border-left: 6px solid #fb8c00;">
+            <div class="p-4">
+                <div class="d-flex align-items-center mb-2">
+                    <div class="grad-warning text-center border-radius-md me-3 d-flex align-items-center justify-content-center" 
+                         style="width:40px; height:40px; border-radius:50%; color:white; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                        <i class="material-icons" style="font-size: 20px;">warning</i>
+                    </div>
+                    <div>
+                        <h5 class="font-weight-bolder mb-0">Ingreso Manual / Emergencia</h5>
+                        <p class="text-sm text-secondary mb-0">Uso exclusivo administrativo para correcciones.</p>
+                    </div>
+                </div>
+                
+                <form method="post" class="row g-3 mt-2 align-items-end">
+                    {% csrf_token %}
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold text-xs text-secondary text-uppercase">Vehículo</label>
+                        <select name="vehiculo" class="form-control ps-3" style="border:1px solid #d2d6da; height: 45px;" required>
+                            <option value="">Seleccionar...</option>
+                            {% for v in vehiculos %}
+                                <option value="{{ v.id_vehiculo }}">{{ v.patente }} - {{ v.modelo }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-xs text-secondary text-uppercase">Litros</label>
+                        <input type="number" name="litros" step="0.1" class="form-control ps-3" placeholder="0.0" style="border:1px solid #d2d6da; height: 45px;" required>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold text-xs text-secondary text-uppercase">Costo Total ($)</label>
+                        <input type="number" name="costo" class="form-control ps-3" placeholder="$" style="border:1px solid #d2d6da; height: 45px;" required>
+                    </div>
+                    <div class="col-md-2">
+                        <button type="submit" class="btn bg-gradient-warning w-100 mb-0" style="height: 45px; font-weight:bold;">
+                            GUARDAR
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
-
-    </form>
-</div>
-
-<!-- Tabla de registros recientes -->
-<div class="card large-card">
-    <div class="card-header-between">
-        <h3>Registros recientes</h3>
-        <span></span>
     </div>
 
-    <table class="routes-table" style="width: 100%; margin-top: 20px;">
-        <thead>
-            <tr>
-                <th>Fecha</th>
-                <th>Vehículo</th>
-                <th>Litros</th>
-                <th>Costo</th>
-                <th>Costo/Litro</th>
-                <th>Odómetro</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-                <td>—</td>
-            </tr>
-        </tbody>
-    </table>
+    <div class="col-md-12">
+        <div class="card-material">
+            <div class="p-4 pb-2">
+                <h6 class="mb-0">Últimos Registros</h6>
+                <p class="text-sm text-secondary">Historial reciente de cargas</p>
+            </div>
+            <div class="table-responsive p-0">
+                <table class="table align-items-center mb-0">
+                    <thead>
+                        <tr>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Fecha</th>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Vehículo</th>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Litros</th>
+                            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Costo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for c in ultimas_cargas %}
+                        <tr>
+                            <td>
+                                <div class="d-flex px-2 py-1">
+                                    <div class="d-flex flex-column justify-content-center">
+                                        <h6 class="mb-0 text-sm">{{ c.fecha|date:"d/m/Y" }}</h6>
+                                        <p class="text-xs text-secondary mb-0">{{ c.hora|time:"H:i" }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <p class="text-xs font-weight-bold mb-0">{{ c.vehiculo.patente }}</p>
+                                <p class="text-xs text-secondary mb-0">{{ c.vehiculo.modelo }}</p>
+                            </td>
+                            <td>
+                                <span class="badge badge-sm bg-gradient-secondary">{{ c.litros }} L</span>
+                            </td>
+                            <td>
+                                <p class="text-xs font-weight-bold text-success mb-0">${{ c.costo_total }}</p>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center p-4 text-secondary">
+                                <i class="material-icons d-block mb-2" style="font-size: 30px; opacity:0.5;">folder_off</i>
+                                No hay registros disponibles.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}
