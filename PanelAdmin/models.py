@@ -14,6 +14,11 @@ class Usuario(models.Model):
         managed = False
         db_table = 'Usuarios'
 
+    def save(self, *args, **kwargs):
+        if self.rol:
+            self.rol = self.rol.upper()
+        super(Usuario, self).save(*args, **kwargs)
+
     def __str__(self):
         return self.nombre
 
@@ -22,7 +27,7 @@ class Vehiculo(models.Model):
     id_vehiculo = models.AutoField(primary_key=True)
     patente = models.CharField(unique=True, max_length=20)
     modelo = models.CharField(max_length=100)
-    conductor = models.ForeignKey(Usuario, models.DO_NOTHING, blank=True, null=True, db_column='conductor_id') 
+    conductor = models.ForeignKey(Usuario, models.DO_NOTHING, blank=True, null=True, db_column='conductor_id')
     kilometraje = models.IntegerField()
     fecha_creacion = models.DateTimeField(blank=True, null=True)
 

@@ -1,8 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
+# Decorador de seguridad
 from django.contrib.auth.decorators import login_required 
-from django.db.models import Sum, Q, F
+from django.db.models import Sum, Q, F, Max
 from django.utils import timezone
 from django.http import HttpResponse
 from django.template.loader import get_template
@@ -10,10 +11,12 @@ from xhtml2pdf import pisa
 from .models import Usuario, Vehiculo, Recorrido, CargaCombustible
 import datetime
 
-@login_required 
+# --- DASHBOARD ---
+@login_required
 def panel_dashboard(request):
     hoy = timezone.now().date()
 
+    # KPIs
     entregas_activas_query = Recorrido.objects.filter(fecha=hoy, hora_fin__isnull=True).select_related('vehiculo', 'conductor')
     count_entregas = entregas_activas_query.count()
 
@@ -33,6 +36,7 @@ def panel_dashboard(request):
     if litros_totales > 0:
         eficiencia = round(distancia_total / litros_totales, 1)
 
+    # Gráficos
     fechas_grafico = []
     montos_grafico = []
     for i in range(6, -1, -1):
@@ -54,39 +58,79 @@ def panel_dashboard(request):
 
 @login_required
 def panel_conductores(request):
+    # ... (filtros y búsqueda igual que antes) ...
     busqueda = request.GET.get('q')
-    conductores = Usuario.objects.filter(~Q(rol__icontains='admin')).exclude(id_usuario=1)
+    conductores = Usuario.objects.filter(~Q(rol__icontains='admin')).exclude(id_usuario=1).order_by('id_usuario')
 
     if busqueda:
         conductores = conductores.filter(nombre__icontains=busqueda)
 
     if request.method == "POST":
         accion = request.POST.get('accion')
-        id_usuario = request.POST.get('id_usuario')
-        usuario = get_object_or_404(Usuario, id_usuario=id_usuario)
+        
+        # --- NUEVA LÓGICA: CREAR USUARIO CON ID ORDENADO ---
+        if accion == 'crear':
+            try:
+                nombre = request.POST.get('nombre')
+                rut = request.POST.get('rut')
+                correo = request.POST.get('correo')
+                telefono = request.POST.get('telefono')
+                clave = request.POST.get('password')
+                
+                if Usuario.objects.filter(rut=rut).exists():
+                    messages.error(request, f"Error: El RUT {rut} ya existe.")
+                elif Usuario.objects.filter(correo=correo).exists():
+                    messages.error(request, f"Error: El correo {correo} ya existe.")
+                else:
+                    # TRUCO: Buscamos el ID más alto y le sumamos 1
+                    max_id = Usuario.objects.aggregate(Max('id_usuario'))['id_usuario__max'] or 0
+                    nuevo_id = max_id + 1
 
-        if accion == 'deshabilitar':
-            usuario.rol = 'Deshabilitado'
-            usuario.save()
-            messages.warning(request, f"Usuario {usuario.nombre} deshabilitado.")
-        elif accion == 'habilitar':
-            usuario.rol = 'Conductor'
-            usuario.save()
-            messages.success(request, f"Usuario {usuario.nombre} reactivado.")
-        elif accion == 'actualizar_pass':
-            nueva_pass = request.POST.get('new_password')
-            if nueva_pass:
-                usuario.pin_hash = make_password(nueva_pass)
+                    Usuario.objects.create(
+                        id_usuario=nuevo_id, # <--- FORZAMOS EL NÚMERO AQUÍ
+                        nombre=nombre,
+                        rut=rut,
+                        correo=correo,
+                        telefono=telefono,
+                        pin_hash=make_password(clave),
+                        rol='CONDUCTOR', 
+                        fecha_creacion=timezone.now()
+                    )
+                    messages.success(request, f"Conductor {nombre} creado con ID {nuevo_id}.")
+            except Exception as e:
+                messages.error(request, f"Error: {e}")
+
+        # ... (El resto de las acciones 'deshabilitar', 'habilitar', etc. siguen igual) ...
+        else:
+            id_usuario = request.POST.get('id_usuario')
+            usuario = get_object_or_404(Usuario, id_usuario=id_usuario)
+
+            if accion == 'deshabilitar':
+                usuario.rol = 'DESHABILITADO'
                 usuario.save()
-                messages.success(request, "Contraseña actualizada.")
-        elif accion == 'eliminar':
-            usuario.delete()
-            messages.error(request, "Usuario eliminado.")
+                messages.warning(request, f"Usuario {usuario.nombre} deshabilitado.")
+            
+            elif accion == 'habilitar':
+                usuario.rol = 'CONDUCTOR'
+                usuario.save()
+                messages.success(request, f"Usuario {usuario.nombre} reactivado.")
+
+            elif accion == 'actualizar_pass':
+                nueva_pass = request.POST.get('new_password')
+                if nueva_pass:
+                    usuario.pin_hash = make_password(nueva_pass)
+                    usuario.save()
+                    messages.success(request, "Contraseña actualizada.")
+
+            elif accion == 'eliminar':
+                usuario.delete()
+                messages.error(request, "Usuario eliminado.")
             
         return redirect('panel_conductores')
 
     return render(request, 'PanelAdmin/conductores.html', {'conductores': conductores})
 
+# --- VEHÍCULOS ---
 @login_required
 def panel_vehiculos(request):
     vehiculos = Vehiculo.objects.all()
@@ -111,15 +155,17 @@ def panel_vehiculos(request):
         'conductores': conductores_disponibles
     })
 
+# --- RUTAS ---
 @login_required
 def panel_rutas(request):
     hoy = timezone.now().date()
     recorridos = Recorrido.objects.filter(
         fecha=hoy, 
         hora_fin__isnull=True
-    ).select_related('vehiculo', 'conductor') 
+    ).select_related('vehiculo', 'conductor')
     return render(request, 'PanelAdmin/rutas.html', {'recorridos': recorridos})
 
+# --- COMBUSTIBLE ---
 @login_required
 def panel_combustible(request):
     vehiculos = Vehiculo.objects.all()
@@ -156,6 +202,7 @@ def panel_combustible(request):
     }
     return render(request, 'PanelAdmin/combustible.html', contexto)
 
+# --- REPORTES ---
 @login_required
 def panel_reportes(request):
     fecha_inicio = request.GET.get('fecha_inicio')
@@ -191,6 +238,7 @@ def panel_reportes(request):
     }
     return render(request, 'PanelAdmin/reportes.html', contexto)
 
+# --- PDF ---
 @login_required
 def generar_pdf_reporte(request):
     fecha_inicio = request.GET.get('fecha_inicio')
@@ -235,9 +283,10 @@ def generar_pdf_reporte(request):
         return HttpResponse('Error al generar PDF')
     return response
 
+# --- ELIMINAR (Seguros) ---
 @login_required
 def eliminar_ruta(request, id):
-    if request.user.is_authenticated: 
+    if request.user.is_authenticated:
         try:
             ruta = Recorrido.objects.get(id_recorrido=id)
             ruta.delete()
