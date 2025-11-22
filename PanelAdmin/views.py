@@ -1,18 +1,16 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
-# Decorador de seguridad
+# CORRECCIÓN CLAVE: Agregamos ProtectedError y Max
 from django.contrib.auth.decorators import login_required 
-from django.db.models import Sum, Q, F, Max
+from django.db.models import Sum, Q, F, Max, ProtectedError 
 from django.utils import timezone
 from django.http import HttpResponse
-from django.template.loader import get_template
-from xhtml2pdf import pisa
+from django.template.loader import get_template 
+from xhtml2pdf import pisa 
 from .models import Usuario, Vehiculo, Recorrido, CargaCombustible
 import datetime
 
-# --- DASHBOARD ---
-@login_required
 def panel_dashboard(request):
     hoy = timezone.now().date()
 
@@ -82,12 +80,11 @@ def panel_conductores(request):
                 elif Usuario.objects.filter(correo=correo).exists():
                     messages.error(request, f"Error: El correo {correo} ya existe.")
                 else:
-                    # TRUCO: Buscamos el ID más alto y le sumamos 1
                     max_id = Usuario.objects.aggregate(Max('id_usuario'))['id_usuario__max'] or 0
                     nuevo_id = max_id + 1
 
                     Usuario.objects.create(
-                        id_usuario=nuevo_id, # <--- FORZAMOS EL NÚMERO AQUÍ
+                        id_usuario=nuevo_id,
                         nombre=nombre,
                         rut=rut,
                         correo=correo,
@@ -100,7 +97,6 @@ def panel_conductores(request):
             except Exception as e:
                 messages.error(request, f"Error: {e}")
 
-        # ... (El resto de las acciones 'deshabilitar', 'habilitar', etc. siguen igual) ...
         else:
             id_usuario = request.POST.get('id_usuario')
             usuario = get_object_or_404(Usuario, id_usuario=id_usuario)
@@ -133,25 +129,61 @@ def panel_conductores(request):
 # --- VEHÍCULOS ---
 @login_required
 def panel_vehiculos(request):
-    vehiculos = Vehiculo.objects.all()
-    conductores_disponibles = Usuario.objects.filter(rol__icontains='Conductor')
+    # N+1 FIX: Usamos select_related('conductor') para traer los datos del conductor en 1 consulta.
+    vehiculos = Vehiculo.objects.select_related('conductor').all().order_by('id_vehiculo') 
+    conductores_disponibles = Usuario.objects.filter(rol__icontains='CONDUCTOR').order_by('nombre')
 
     if request.method == "POST":
+        accion = request.POST.get('accion')
         id_vehiculo = request.POST.get('id_vehiculo')
-        id_conductor = request.POST.get('conductor_asignado')
-        vehiculo = get_object_or_404(Vehiculo, id_vehiculo=id_vehiculo)
         
-        if id_conductor:
-            conductor = get_object_or_404(Usuario, id_usuario=id_conductor)
-            vehiculo.conductor = conductor
-        else:
-            vehiculo.conductor = None
-        vehiculo.save()
-        messages.success(request, "Asignación actualizada.")
+        # LÓGICA DE CREACIÓN
+        if accion == 'crear':
+            patente = request.POST.get('patente')
+            modelo = request.POST.get('modelo')
+            kilometraje = request.POST.get('kilometraje')
+            
+            if Vehiculo.objects.filter(patente=patente).exists():
+                messages.error(request, f"Error: La patente {patente} ya está registrada.")
+            else:
+                Vehiculo.objects.create(
+                    patente=patente,
+                    modelo=modelo,
+                    kilometraje=kilometraje,
+                    fecha_creacion=timezone.now()
+                )
+                messages.success(request, f"Vehículo {patente} creado exitosamente.")
+        
+        # LÓGICA DE ELIMINACIÓN
+        elif accion == 'eliminar':
+            try:
+                vehiculo = Vehiculo.objects.get(id_vehiculo=id_vehiculo)
+                vehiculo.delete()
+                messages.error(request, "Vehículo eliminado.") # Usamos error para que sea rojo
+            except Vehiculo.DoesNotExist:
+                messages.error(request, "Error: Vehículo no encontrado.")
+            except ProtectedError:
+                # El vehículo tiene registros históricos (recorridos o cargas)
+                messages.error(request, "Error: No se puede eliminar. El vehículo tiene historial asociado (recorridos o cargas).")
+        
+        # LÓGICA DE ASIGNACIÓN (Existente)
+        elif accion == 'asignar': 
+            id_conductor = request.POST.get('conductor_asignado')
+            vehiculo = get_object_or_404(Vehiculo, id_vehiculo=id_vehiculo)
+            
+            if id_conductor:
+                conductor = get_object_or_404(Usuario, id_usuario=id_conductor)
+                vehiculo.conductor = conductor
+            else:
+                vehiculo.conductor = None
+                
+            vehiculo.save()
+            messages.success(request, f"Asignación de {vehiculo.patente} actualizada.")
+            
         return redirect('panel_vehiculos')
 
     return render(request, 'PanelAdmin/vehiculos.html', {
-        'vehiculos': vehiculos, 
+        'vehiculos': vehiculos,
         'conductores': conductores_disponibles
     })
 
