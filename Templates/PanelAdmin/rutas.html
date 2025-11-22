@@ -1,0 +1,70 @@
+{% extends 'PanelAdmin/base_panel.html' %}
+
+{% block title %}Dashboard - HansMoreno{% endblock %}
+{% block menu_dashboard %}active{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Gestor de rutas</h1>
+    <p>Rutas actuales</p>
+   
+</div>
+<div class="routes-container">
+    <input type="text" class="search-input" placeholder="Buscar rutas...">
+     <table class="routes-table">
+        <thead>
+            <tr>
+                <th>ID Ruta</th>
+                <th>Origen</th>
+                <th>Destino</th>
+                <th>Distancia</th>
+                <th>Estado</th>
+                <th>Vehículo</th>
+                <th>Conductor</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+
+ <tbody>
+            {% for r in recorridos %}
+            <tr>
+                <td>{{ r.id_recorrido }}</td>
+                <td>{{ r.ubicacion_inicio_txt }}</td>
+                <td>{{ r.ubicacion_fin_txt }}</td>
+
+                <td>
+                    {% if r.distancia %}
+                        {{ r.distancia }} km
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <!-- Estado: por ahora fijo, luego podemos usar lógica real -->
+                <td><span class="badge in-transit">En tránsito</span></td>
+
+                <td>
+                    {{ r.vehiculo.patente }} ({{ r.vehiculo.id_vehiculo }})
+                </td>
+
+                <td>{{ r.conductor.nombre }}</td>
+
+                <td class="actions-cell">
+                    <span class="action-icon">👁️</span>
+                    <span class="action-icon">✏️</span>
+                    <span class="action-icon">🗑️</span>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8">No hay recorridos registrados.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+
+
+
+</div>
+
+{% endblock %}

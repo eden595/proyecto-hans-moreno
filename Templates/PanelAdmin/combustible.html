@@ -1,0 +1,122 @@
+{% extends 'PanelAdmin/base_panel.html' %}
+
+{% block title %}Combustible - HansMoreno{% endblock %}
+{% block menu_combustible %}active{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Seguimiento de Combustible</h1>
+    <p>Monitorea el consumo y los costos de la flota</p>
+</div>
+
+<!-- Tarjetas superiores -->
+<div class="stats-grid">
+    <div class="card stats-card">
+        <div class="card-header">
+            <span>Gasto total</span>
+        </div>
+        <div class="stats-value">—</div>
+        <div class="stats-change">Monto total en combustible</div>
+    </div>
+
+    <div class="card stats-card">
+        <div class="card-header">
+            <span>Costo prom. / Litro</span>
+        </div>
+        <div class="stats-value">—</div>
+        <div class="stats-change">Costo promedio</div>
+    </div>
+
+    <div class="card stats-card">
+        <div class="card-header">
+            <span>Litros totales</span>
+        </div>
+        <div class="stats-value">—</div>
+        <div class="stats-change">Litros registrados</div>
+    </div>
+
+    <div class="card stats-card">
+        <div class="card-header">
+            <span>Registros</span>
+        </div>
+        <div class="stats-value">—</div>
+        <div class="stats-change">Entradas en total</div>
+    </div>
+</div>
+
+<!-- Form para agregar registro -->
+<div class="card large-card">
+    <div class="card-header-between">
+        <h3>Agregar registro de combustible</h3>
+        <span></span>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div class="delivery-item">
+            <div style="flex: 1;">
+                <label>Vehículo</label>
+                <select name="vehiculo" style="width: 100%;">
+                    <option value="">Seleccionar…</option>
+                </select>
+            </div>
+
+            <div style="flex: 1;">
+                <label>Litros</label>
+                <input type="number" name="litros" step="0.1" style="width: 100%;">
+            </div>
+
+            <div style="flex: 1;">
+                <label>Costo ($)</label>
+                <input type="number" name="costo" step="0.1" style="width: 100%;">
+            </div>
+
+            <div style="flex: 1;">
+                <label>Odómetro (km)</label>
+                <input type="number" name="odometro" step="0.1" style="width: 100%;">
+            </div>
+
+            <div style="flex: 1;">
+                <button type="submit" class="btn-primary">
+                    + Agregar
+                </button>
+            </div>
+        </div>
+
+    </form>
+</div>
+
+<!-- Tabla de registros recientes -->
+<div class="card large-card">
+    <div class="card-header-between">
+        <h3>Registros recientes</h3>
+        <span></span>
+    </div>
+
+    <table class="routes-table" style="width: 100%; margin-top: 20px;">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Vehículo</th>
+                <th>Litros</th>
+                <th>Costo</th>
+                <th>Costo/Litro</th>
+                <th>Odómetro</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+                <td>—</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

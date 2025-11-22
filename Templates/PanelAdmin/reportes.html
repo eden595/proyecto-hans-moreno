@@ -1,0 +1,59 @@
+{% extends 'PanelAdmin/base_panel.html' %}
+
+{% block title %}Reportes - HansMoreno{% endblock %}
+{% block menu_reportes %}active{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Reportes y Analítica</h1>
+    <p>Analiza el rendimiento de la flota y los costos de operación</p>
+</div>
+
+<!-- Filtro de periodo (se ve como tarjeta simple) -->
+<div class="card large-card">
+    <div class="card-header-between">
+        <h3>Período de análisis</h3>
+        <ul class="nav-list" style="display: flex; gap: 15px; margin: 0;">
+            <li class="nav-item active">Semanal</li>
+            <li class="nav-item">Mensual</li>
+            <li class="nav-item">Anual</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Primera fila de tarjetas de reporte -->
+<div class="stats-grid" style="margin-top: 20px;">
+    <div class="card large-card">
+        <div class="card-header-between">
+            <h3>Análisis de costo de combustible</h3>
+            <span></span>
+        </div>
+        <div class="chart-placeholder">
+            Gráfico de costo semanal de combustible
+        </div>
+    </div>
+
+    <div class="card large-card">
+        <div class="card-header-between">
+            <h3>Eficiencia de rutas</h3>
+            <span></span>
+        </div>
+        <div class="chart-placeholder">
+            Métricas de eficiencia de rutas
+        </div>
+    </div>
+</div>
+
+<!-- Tarjeta grande para distribución de rutas -->
+<div class="card large-card">
+    <div class="card-header-between">
+        <h3>Distribución de rutas</h3>
+        <span></span>
+    </div>
+    <div class="chart-placeholder">
+        Mapa / distribución de recorridos
+    </div>
+</div>
+
+{% endblock %}

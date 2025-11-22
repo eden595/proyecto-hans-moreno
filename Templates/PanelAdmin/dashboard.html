@@ -1,0 +1,125 @@
+{% extends 'PanelAdmin/base_panel.html' %}
+
+{% block title %}Dashboard - HansMoreno{% endblock %}
+{% block menu_dashboard %}active{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Panel Principal</h1>
+    <p>Resumen general de las operaciones</p>
+</div>
+
+<!-- Tarjetas superiores -->
+<div class="stats-grid">
+
+    <div class="card stats-card">
+        <div class="card-header">
+            <span>Entregas Activas</span>
+            <div class="icon-pill">🚚</div>
+        </div>
+
+        <!-- {{ entregas_activas }} -->
+        <div class="stats-value">0</div>
+
+        <!-- {{ cambio_entregas }} -->
+        <div class="stats-change positivo">---</div>
+    </div>
+
+    <div class="card stats-card">
+        <div class="card-header">
+            <span>Distancia Total</span>
+            <div class="icon-pill">🔗</div>
+        </div>
+
+        <!-- {{ distancia_total }} -->
+        <div class="stats-value">0 <span class="unit">km</span></div>
+
+        <!-- {{ cambio_distancia }} -->
+        <div class="stats-change positivo">---</div>
+    </div>
+
+    <div class="card stats-card">
+        <div class="card-header">
+            <span>Costo de Combustible</span>
+            <div class="icon-pill">⛽</div>
+        </div>
+
+        <!-- {{ costo_combustible }} -->
+        <div class="stats-value">$0</div>
+
+        <!-- {{ cambio_combustible }} -->
+        <div class="stats-change negativo">---</div>
+    </div>
+
+    <div class="card stats-card">
+        <div class="card-header">
+            <span>Eficiencia</span>
+            <div class="icon-pill">📈</div>
+        </div>
+
+        <!-- {{ eficiencia }} -->
+        <div class="stats-value">0 km/L</div>
+
+        <!-- {{ cambio_eficiencia }} -->
+        <div class="stats-change positivo">---</div>
+    </div>
+
+</div>
+
+<!-- Contenedor inferior -->
+<div class="lower-grid">
+
+    <div class="card large-card">
+        <div class="card-header-between">
+            <h3>Entregas Activas</h3>
+            <a href="#">Ver todas</a>
+        </div>
+
+        <!--
+        {% for entrega in entregas %}
+            <div class="delivery-item">
+                <div>
+                    <strong>{{ entrega.codigo }}</strong>
+                    <p>{{ entrega.destino }}</p>
+                </div>
+
+                <span class="status 
+                    {% if entrega.estado == 'En tránsito' %}in-transit
+                    {% elif entrega.estado == 'Planificada' %}planned
+                    {% endif %}
+                ">
+                    {{ entrega.estado }}
+                </span>
+
+                <span class="driver">
+                    {{ entrega.conductor }} • {{ entrega.vehiculo }}
+                </span>
+            </div>
+
+            {% if not forloop.last %}
+                <hr>
+            {% endif %}
+        {% endfor %}
+        -->
+
+        <!-- Temporales mientras no hay DB -->
+        <div class="delivery-item">
+            <div>
+                <strong>---</strong>
+                <p>Destino</p>
+            </div>
+            <span class="status planned">---</span>
+            <span class="driver">---</span>
+        </div>
+
+    </div>
+
+    <div class="card large-card">
+        <h3>Tendencia de Consumo de Combustible</h3>
+        <div class="chart-placeholder">Área para gráfico</div>
+    </div>
+
+</div>
+
+{% endblock %}

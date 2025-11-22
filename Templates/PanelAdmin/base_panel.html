@@ -1,0 +1,77 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Panel - HansMoreno{% endblock %}</title>
+
+    <link rel="stylesheet" href="{% static 'CSS/estilos.css' %}">
+</head>
+<body>
+
+<div class="app">
+
+    <!-- Barra superior -->
+    <header class="topbar">
+        <div class="topbar-left">
+            <div class="logo-icon">🚚</div>
+            <span class="logo-text">HansMoreno</span>
+        </div>
+
+        <div class="topbar-right">
+            <button class="icon-btn">⟳</button>
+            <button class="icon-btn">🌙</button>
+            <div class="user-badge">FM</div>
+        </div>
+    </header>
+
+    <div class="main">
+
+        <!-- Barra lateral -->
+        <aside class="sidebar">
+            <h3 class="nav-title">Navegación</h3>
+            <ul class="nav-list">
+
+                <!-- Dashboard -->
+                <li class="nav-item {% block menu_dashboard %}{% endblock %}">
+                    <a href="{% url 'panel_dashboard' %}">Dashboard</a>
+                </li>
+
+                <!-- Rutas -->
+                <li class="nav-item {% block menu_rutas %}{% endblock %}">
+                    <a href="{% url 'panel_rutas' %}">Rutas</a>
+                </li>
+
+                <!-- Vehículos -->
+                <li class="nav-item {% block menu_vehiculos %}{% endblock %}">
+                    <a href="{% url 'panel_vehiculos' %}">Vehículos</a>
+                </li>
+
+                <!-- Combustible -->
+                <li class="nav-item {% block menu_combustible %}{% endblock %}">
+                    <a href="{% url 'panel_combustible' %}">Control Combustible</a>
+                </li>
+
+                <!-- Reportes -->
+                <li class="nav-item {% block menu_reportes %}{% endblock %}">
+                    <a href="{% url 'panel_reportes' %}">Reportes</a>
+                </li>
+
+                <!-- Configuración -->
+                <li class="nav-item {% block menu_config %}{% endblock %}">
+                    <a href="#">Configuración</a>
+                </li>
+
+            </ul>
+        </aside>
+
+        <!-- Contenido dinámico -->
+        <section class="content">
+            {% block content %}{% endblock %}
+        </section>
+
+    </div>
+</div>
+
+</body>
+</html>

@@ -1,0 +1,40 @@
+{% extends 'PanelAdmin/base_panel.html' %}
+
+{% block title %}Vehículos - HansMoreno{% endblock %}
+{% block menu_dashboard %}active{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <h1>Gestor de vehículos</h1>
+    <p>Listado de camiones registrados</p>
+</div>
+
+<div class="stats-grid">
+
+    {% for vehiculo in vehiculos %}
+    <div class="card stats-card">
+        <div class="card-header">
+            <span>
+                {{ vehiculo.modelo }}<br>
+                <strong>Patente: {{ vehiculo.patente }}</strong>
+            </span>
+
+            <!-- Imagen fija referencial -->
+            <img src="https://img.freepik.com/fotos-premium/furgoneta-comercial-mediana-blanca-sobre-fondo-blanco-cuerpo-blanco-aplicar-sus-inscripciones-diseno-logotipos-ilustracion-3d_101266-25103.jpg?semt=ais_hybrid&w=740&q=80"
+                 style="max-width: 200px;" alt="camion">
+        </div>
+
+        <div class="stats-value">
+            Kilometraje: {{ vehiculo.kilometraje }} km
+        </div>
+
+        <div class="stats-change">
+           Conductor ID: {{ vehiculo.conductor_id }}
+        </div>
+    </div>
+    {% endfor %}
+
+</div>
+
+{% endblock %}
