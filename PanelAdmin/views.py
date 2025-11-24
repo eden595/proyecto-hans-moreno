@@ -9,6 +9,7 @@ from django.http import HttpResponse, JsonResponse
 from django.template.loader import get_template 
 from xhtml2pdf import pisa 
 import datetime
+import json
 
 from .models import Usuario, Vehiculo, Recorrido, CargaCombustible
 
@@ -324,20 +325,34 @@ def eliminar_combustible(request, id):
 def update_gps_location(request):
     if request.method == 'POST':
         try:
-            data = request.POST
+            # INTENTO 1: Leer datos como JSON (Estándar para Apps Android)
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                # INTENTO 2: Leer como Formulario Web (Por si acaso)
+                data = request.POST
+            
             patente_app = data.get('patente')
             latitud_app = data.get('latitud')
             longitud_app = data.get('longitud')
             
+            # Validación básica
+            if not patente_app:
+                return JsonResponse({'status': 'error', 'message': 'Falta la patente'}, status=400)
+
+            # 1. Buscamos el vehículo
             vehiculo = Vehiculo.objects.get(patente=patente_app)
+            
+            # 2. Actualizamos las coordenadas
             vehiculo.latitud = latitud_app
             vehiculo.longitud = longitud_app
             vehiculo.save()
             
             return JsonResponse({'status': 'success', 'message': 'Ubicación actualizada'}, status=200)
+            
         except Vehiculo.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Patente no encontrada'}, status=404)
+            return JsonResponse({'status': 'error', 'message': f'Patente {patente_app} no encontrada'}, status=404)
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+            return JsonResponse({'status': 'error', 'message': f'Error interno: {e}'}, status=500)
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)

@@ -6,22 +6,8 @@
 
 {% block content %}
 
-<!-- Mensajes -->
-{% if messages %}
-    {% for message in messages %}
-        {% if message.tags == 'success' %}
-            <div class="alert alert-success text-white mb-4 shadow-sm" style="border:none;">
-                <i class="material-icons text-sm me-2">check_circle</i> {{ message }}
-            </div>
-        {% else %}
-            <div class="alert alert-danger text-white mb-4 shadow-sm" style="border:none;">
-                <i class="material-icons text-sm me-2">error_outline</i> {{ message }}
-            </div>
-        {% endif %}
-    {% endfor %}
-{% endif %}
-
 <div class="row mb-4">
+    
     <div class="col-xl-3 col-sm-6 mb-4">
         <div class="card-material">
             <div class="card-icon-floating grad-green">
@@ -142,6 +128,7 @@
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Vehículo</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Litros</th>
                             <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Costo</th>
+                            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -165,10 +152,19 @@
                             <td>
                                 <p class="text-xs font-weight-bold text-success mb-0">${{ c.costo_total }}</p>
                             </td>
+                            
+                            <td class="align-middle text-center">
+                                <a href="{% url 'eliminar_combustible' c.id_carga %}" 
+                                   class="btn btn-link text-danger mb-0 px-2" 
+                                   onclick="return confirm('¿Borrar este registro de combustible de ${{ c.costo_total }}?');" 
+                                   title="Eliminar carga">
+                                    <i class="material-icons text-sm">delete</i>
+                                </a>
+                            </td>
                         </tr>
                         {% empty %}
                         <tr>
-                            <td colspan="4" class="text-center p-4 text-secondary">
+                            <td colspan="5" class="text-center p-4 text-secondary">
                                 <i class="material-icons d-block mb-2" style="font-size: 30px; opacity:0.5;">folder_off</i>
                                 No hay registros disponibles.
                             </td>
