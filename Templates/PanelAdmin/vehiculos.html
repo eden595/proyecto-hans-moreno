@@ -21,83 +21,113 @@
 {% endif %}
 
 <div class="mb-4 d-flex justify-content-end">
-    <button type="button" class="btn bg-gradient-success mb-0 d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#crearVehiculoModal">
+    <button type="button" class="btn bg-gradient-success mb-0 d-flex align-items-center gap-2 shadow" data-bs-toggle="modal" data-bs-target="#crearVehiculoModal">
         <i class="material-icons text-sm">add</i> Nuevo Vehículo
     </button>
 </div>
 
 <div class="row">
     {% for vehiculo in vehiculos %}
-    <div class="col-xl-4 col-lg-6 mb-4">
-        <div class="card-material p-3">
+    <div class="col-xl-3 col-lg-4 col-md-6 mb-4">
+        <div class="card-material h-100 d-flex flex-column">
             
-            <div class="d-flex justify-content-between align-items-start">
-                <div class="card-icon-floating grad-dark">
+            <div class="position-relative px-3 pt-1">
+                <div class="card-icon-floating grad-dark shadow-dark">
                     <i class="material-icons">directions_car</i>
                 </div>
                 
-                <div class="text-end">
-                    <form method="post" style="display: inline-block;">
+                <div class="position-absolute top-0 end-0 mt-3 me-3">
+                    <form method="post">
                         {% csrf_token %}
                         <input type="hidden" name="accion" value="eliminar">
                         <input type="hidden" name="id_vehiculo" value="{{ vehiculo.id_vehiculo }}">
-                        <button type="submit" class="btn btn-link text-danger p-0 mb-0" 
-                                onclick="return confirm('ATENCIÓN: Esto eliminará el vehículo (ID {{ vehiculo.id_vehiculo }}). ¿Desea continuar?');" 
+                        <button type="submit" class="btn btn-link text-danger p-2 mb-0" 
+                                onclick="return confirm('¿Eliminar el vehículo {{ vehiculo.patente }}?');" 
                                 title="Eliminar Vehículo">
-                            <i class="material-icons text-sm">delete</i>
+                            <i class="material-icons" style="font-size: 20px;">delete</i>
                         </button>
                     </form>
                 </div>
             </div>
 
-            <div class="mt-4 pt-3">
-                <h5 class="mb-0 text-uppercase">{{ vehiculo.patente }}</h5>
-                <p class="text-xs text-secondary mb-2">{{ vehiculo.modelo }}</p>
+            <div class="card-body pt-5 px-3 pb-3 flex-grow-1">
                 
-                <div class="d-flex justify-content-between text-sm mt-3">
-                    <span class="text-muted">Conductor:</span>
-                    <span class="fw-bold">
-                        {% if vehiculo.conductor %}
-                            {{ vehiculo.conductor.nombre }}
-                        {% else %}
-                            Sin Asignar
-                        {% endif %}
-                    </span>
+                <div class="text-center mt-2 mb-4">
+                    <h4 class="mb-0 font-weight-bolder text-dark">{{ vehiculo.patente }}</h4>
+                    <span class="badge bg-light text-secondary text-xxs mb-2 mt-1 border">{{ vehiculo.modelo }}</span>
                 </div>
-                <div class="d-flex justify-content-between text-sm">
-                    <span class="text-muted">Kilometraje:</span>
-                    <span class="fw-bold">{{ vehiculo.kilometraje|default:"N/A" }} km</span>
+
+                <div class="row mb-4 g-0">
+                    <div class="col-6 text-center border-end">
+                        <p class="text-xs mb-1 text-secondary font-weight-bold text-uppercase d-flex justify-content-center align-items-center gap-1">
+                            <i class="material-icons text-info text-sm">person</i> Conductor
+                        </p>
+                        <h6 class="font-weight-bolder mb-0 text-sm text-dark">
+                            {% if vehiculo.conductor %}
+                                {{ vehiculo.conductor.nombre }}
+                            {% else %}
+                                <span class="text-secondary opacity-5 fst-italic">--</span>
+                            {% endif %}
+                        </h6>
+                    </div>
+                    <div class="col-6 text-center">
+                        <p class="text-xs mb-1 text-secondary font-weight-bold text-uppercase d-flex justify-content-center align-items-center gap-1">
+                            <i class="material-icons text-success text-sm">speed</i> Kms
+                        </p>
+                        <h6 class="font-weight-bolder mb-0 text-sm text-dark">{{ vehiculo.kilometraje }}</h6>
+                    </div>
                 </div>
+
+                <div class="mb-2">
+                    {% if vehiculo.latitud and vehiculo.longitud %}
+                        <a href="https://www.google.com/maps?q={{ vehiculo.latitud|stringformat:'f' }},{{ vehiculo.longitud|stringformat:'f' }}" 
+                           target="_blank" 
+                           class="btn btn-outline-info btn-sm w-100 mb-0 d-flex align-items-center justify-content-center gap-2 shadow-none">
+                            <i class="material-icons text-sm">place</i> Ver en Mapa
+                        </a>
+                    {% else %}
+                        <div class="py-2 rounded-3 text-center" style="background-color: #f0f2f5; border: 1px solid #e9ecef;">
+                            <span class="text-xs text-secondary font-weight-bold d-flex align-items-center justify-content-center gap-1">
+                                <i class="material-icons text-xs" style="color: #adb5bd;">signal_wifi_off</i> 
+                                <span style="color: #6c757d;">Sin señal GPS</span>
+                            </span>
+                        </div>
+                    {% endif %}
+                </div>
+
             </div>
 
-            <hr class="my-3">
-            <form method="post" style="display: flex; gap: 10px;" class="align-items-end">
-                {% csrf_token %}
-                <input type="hidden" name="accion" value="asignar">
-                <input type="hidden" name="id_vehiculo" value="{{ vehiculo.id_vehiculo }}">
-                
-                <div style="flex: 1;">
-                    <label class="form-label text-xs fw-bold mb-1">Asignar Conductor</label>
-                    <select name="conductor_asignado" class="form-control form-control-sm" style="border:1px solid #d2d6da;">
-                        <option value="">-- Sin Asignar --</option>
-                        {% for conductor in conductores %}
-                            <option value="{{ conductor.id_usuario }}" 
-                                    {% if vehiculo.conductor_id == conductor.id_usuario %}selected{% endif %}>
-                                {{ conductor.nombre }}
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <button type="submit" class="btn bg-gradient-primary btn-sm mb-0" style="padding: 6px 12px;">Guardar</button>
-            </form>
-            
+            <div class="card-footer bg-light border-top p-2">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="accion" value="asignar">
+                    <input type="hidden" name="id_vehiculo" value="{{ vehiculo.id_vehiculo }}">
+                    
+                    <label class="form-label text-xxs fw-bold text-uppercase text-secondary mb-1 ms-1">Asignar / Cambiar</label>
+                    <div class="input-group shadow-sm input-group-sm">
+                        <span class="input-group-text bg-white border-end-0 ps-2 pe-2">
+                            <i class="material-icons text-xs text-secondary">manage_accounts</i>
+                        </span>
+                        <select name="conductor_asignado" class="form-control form-control-sm border-start-0 ps-0" style="border-color: #d2d6da; font-size: 0.8rem;">
+                            <option value="">-- Libre --</option>
+                            {% for conductor in conductores %}
+                                <option value="{{ conductor.id_usuario }}" 
+                                        {% if vehiculo.conductor_id == conductor.id_usuario %}selected{% endif %}>
+                                    {{ conductor.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button type="submit" class="btn bg-gradient-primary mb-0 px-3" style="z-index: 5;">OK</button>
+                    </div>
+                </form>
+            </div>
+
         </div>
     </div>
     {% empty %}
     <div class="col-12 text-center p-5 text-secondary">
-        <i class="material-icons d-block mb-3" style="font-size: 40px; opacity: 0.6;">car_rental</i>
-        No hay vehículos registrados.
+        <i class="material-icons d-block mb-3" style="font-size: 48px; opacity: 0.3;">no_crash</i>
+        <h5 class="text-secondary">No hay vehículos registrados</h5>
     </div>
     {% endfor %}
 </div>
@@ -110,30 +140,36 @@
           <input type="hidden" name="accion" value="crear">
           
           <div class="modal-header bg-gradient-success">
-            <h5 class="modal-title text-white">Registrar Nuevo Vehículo</h5>
+            <h5 class="modal-title text-white">Nuevo Vehículo</h5>
             <button type="button" class="btn-close text-white" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           
           <div class="modal-body">
             <div class="row g-3">
                 <div class="col-12">
-                    <label class="form-label fw-bold">Patente (Ej: ABCD-12)</label>
-                    <input type="text" name="patente" class="form-control border px-3" required>
+                    <label class="form-label fw-bold text-secondary">Patente</label>
+                    <div class="input-group input-group-outline">
+                        <input type="text" name="patente" class="form-control border px-3" placeholder="Ej: ABCD-12" required>
+                    </div>
                 </div>
                 <div class="col-12">
-                    <label class="form-label fw-bold">Modelo (Ej: Hyundai HD65)</label>
-                    <input type="text" name="modelo" class="form-control border px-3" required>
+                    <label class="form-label fw-bold text-secondary">Modelo</label>
+                    <div class="input-group input-group-outline">
+                        <input type="text" name="modelo" class="form-control border px-3" placeholder="Ej: Toyota Yaris" required>
+                    </div>
                 </div>
                 <div class="col-12">
-                    <label class="form-label fw-bold">Kilometraje Actual</label>
-                    <input type="number" name="kilometraje" class="form-control border px-3" required value="0">
+                    <label class="form-label fw-bold text-secondary">Kilometraje</label>
+                    <div class="input-group input-group-outline">
+                        <input type="number" name="kilometraje" class="form-control border px-3" required value="0">
+                    </div>
                 </div>
             </div>
           </div>
           
           <div class="modal-footer">
             <button type="button" class="btn btn-link text-dark" data-bs-dismiss="modal">Cancelar</button>
-            <button type="submit" class="btn bg-gradient-success">Crear Vehículo</button>
+            <button type="submit" class="btn bg-gradient-success">Guardar Vehículo</button>
           </div>
       </form>
     </div>

@@ -11,12 +11,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
-        @font-face {
-            font-family: 'Material Icons';
-            font-style: normal;
-            font-weight: 400;
-            src: url(https://fonts.gstatic.com/s/materialicons/v139/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2');
-        }
+        @font-face { font-family: 'Material Icons'; font-style: normal; font-weight: 400; src: url(https://fonts.gstatic.com/s/materialicons/v139/flUhRq6tzZclQEJ-Vdg-IuiaDsNc.woff2) format('woff2'); }
         .material-icons { font-family: 'Material Icons'; font-weight: normal; font-style: normal; display: inline-block; line-height: 1; text-transform: none; letter-spacing: normal; word-wrap: normal; white-space: nowrap; direction: ltr; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; -moz-osx-font-smoothing: grayscale; font-feature-settings: 'liga'; }
 
         :root {
@@ -73,16 +68,104 @@
         .text-value { color: #344767; font-size: 1.6rem; font-weight: 700; margin: 0; }
         .card-footer-custom { border-top: 1px solid #f0f2f5; padding: 15px 20px; color: #7b809a; font-size: 0.85rem; }
 
+        /* --- NOTIFICACIONES CORREGIDAS --- */
+        .toast-container-custom {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            width: auto;
+        }
+        
+        .alert-toast {
+            min-width: 350px;
+            padding: 14px 20px; /* Padding equilibrado */
+            padding-right: 50px; /* Espacio para la X */
+            border-radius: 50px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            position: relative;
+            animation: slideDown 0.4s ease-out;
+            border: none;
+        }
+        
+        .alert-toast .msg-content { display: flex; align-items: center; gap: 12px; }
+        .alert-toast i { font-size: 22px; }
+        
+        /* BOTÓN X MATERIAL DESIGN */
+        .btn-close-material { 
+            background: transparent;
+            border: none;
+            color: rgba(255,255,255,0.8); 
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+        .btn-close-material:hover {
+            background-color: rgba(255,255,255,0.2);
+            color: white;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
         .grad-blue, .bg-gradient-primary { background: linear-gradient(195deg, #49a3f1 0%, #1A73E8 100%); color: white; }
         .grad-green, .bg-gradient-success { background: linear-gradient(195deg, #66BB6A 0%, #43A047 100%); color: white; }
         .grad-dark, .bg-gradient-dark { background: linear-gradient(195deg, #42424a 0%, #191919 100%); color: white; }
         .grad-info, .bg-gradient-info { background: linear-gradient(195deg, #26c6da 0%, #00acc1 100%); color: white; }
         .grad-warning, .bg-gradient-warning { background: linear-gradient(195deg, #ffa726 0%, #fb8c00 100%); color: white; }
         .bg-gradient-secondary { background: linear-gradient(195deg, #747b8a 0%, #495361 100%); color: white; }
+        
+        .alert-success-custom { background: linear-gradient(135deg, #00b09b 0%, #96c93d 100%); }
+        .alert-error-custom { background: linear-gradient(135deg, #ff5f6d 0%, #ffc371 100%); }
+        .alert-warning-custom { background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%); }
 
     </style>
 </head>
 <body>
+
+    {% if messages %}
+    <div class="toast-container-custom">
+        {% for message in messages %}
+            <div class="alert-toast alert-dismissible fade show 
+                {% if message.tags == 'success' %}alert-success-custom
+                {% elif message.tags == 'error' %}alert-error-custom
+                {% else %}alert-warning-custom{% endif %}" role="alert">
+                
+                <div class="msg-content">
+                    {% if message.tags == 'success' %}<i class="material-icons">check_circle</i>
+                    {% elif message.tags == 'error' %}<i class="material-icons">error</i>
+                    {% else %}<i class="material-icons">info</i>{% endif %}
+                    <span>{{ message }}</span>
+                </div>
+                
+                <button type="button" class="btn-close-material" 
+                        onclick="this.parentElement.remove();"
+                        aria-label="Close">
+                    <i class="material-icons" style="font-size: 18px;">close</i>
+                </button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <aside class="sidebar">
         <div class="sidebar-brand">
             <i class="material-icons">directions_car</i>
@@ -118,5 +201,6 @@
         {% block content %}{% endblock %}
     </div>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -30,6 +30,11 @@ class Vehiculo(models.Model):
     conductor = models.ForeignKey(Usuario, models.DO_NOTHING, blank=True, null=True, db_column='conductor_id')
     kilometraje = models.IntegerField()
     fecha_creacion = models.DateTimeField(blank=True, null=True)
+    
+    # --- CAMPOS NUEVOS PARA GPS ---
+    latitud = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitud = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    # --- FIN CAMPOS NUEVOS ---
 
     class Meta:
         managed = False
