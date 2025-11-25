@@ -18,9 +18,11 @@ from .models import Usuario, Vehiculo, Recorrido, CargaCombustible
 def panel_dashboard(request):
     hoy = timezone.now().date()
 
-    entregas_activas_query = Recorrido.objects.filter(fecha=hoy, hora_fin__isnull=True).select_related('vehiculo', 'conductor')
+    # Entregas que siguen abiertas (sin hora de fin)
+    entregas_activas_query = Recorrido.objects.filter(hora_fin__isnull=True).select_related('vehiculo', 'conductor')
     count_entregas = entregas_activas_query.count()
 
+    # KPIs Históricos
     datos_recorridos = Recorrido.objects.filter(kilometraje_fin__isnull=False).aggregate(
         distancia_total=Sum(F('kilometraje_fin') - F('kilometraje_inicio'))
     )
@@ -37,6 +39,7 @@ def panel_dashboard(request):
     if litros_totales > 0:
         eficiencia = round(distancia_total / litros_totales, 1)
 
+    # Gráficos
     fechas_grafico = []
     montos_grafico = []
     for i in range(6, -1, -1):
@@ -103,12 +106,10 @@ def panel_conductores(request):
             usuario = get_object_or_404(Usuario, id_usuario=id_usuario)
 
             if accion == 'deshabilitar':
-                # INTEGRIDAD: Si deshabilitas a un conductor, quítale el auto si tiene uno asignado
                 Vehiculo.objects.filter(conductor=usuario).update(conductor=None)
-                
                 usuario.rol = 'DESHABILITADO'
                 usuario.save()
-                messages.warning(request, "Usuario deshabilitado y desvinculado de vehículos.")
+                messages.warning(request, "Usuario deshabilitado.")
             
             elif accion == 'habilitar':
                 usuario.rol = 'CONDUCTOR'
@@ -123,12 +124,9 @@ def panel_conductores(request):
                     messages.success(request, "Contraseña actualizada.")
             
             elif accion == 'eliminar':
-                # INTEGRIDAD: Antes de borrar al usuario, liberamos cualquier auto que tenga asignado
-                # para evitar errores de base de datos o autos con conductores fantasmas.
                 Vehiculo.objects.filter(conductor=usuario).update(conductor=None)
-                
                 usuario.delete()
-                messages.error(request, "Usuario eliminado y vehículos liberados.")
+                messages.error(request, "Usuario eliminado.")
             
         return redirect('panel_conductores')
 
@@ -145,7 +143,6 @@ def panel_vehiculos(request):
         id_vehiculo = request.POST.get('id_vehiculo')
         
         if accion == 'crear':
-            # INTEGRIDAD: Normalizamos la patente a Mayúsculas
             patente = request.POST.get('patente').upper().strip()
             modelo = request.POST.get('modelo')
             kilometraje = request.POST.get('kilometraje')
@@ -172,20 +169,17 @@ def panel_vehiculos(request):
             
             if id_conductor:
                 conductor = get_object_or_404(Usuario, id_usuario=id_conductor)
-                
-                # INTEGRIDAD: Verificar si este conductor YA tiene otro auto asignado
-                # Si es así, se lo quitamos (lo "bajamos" del auto viejo para subirlo al nuevo)
                 autos_anteriores = Vehiculo.objects.filter(conductor=conductor).exclude(id_vehiculo=vehiculo.id_vehiculo)
                 if autos_anteriores.exists():
                     autos_anteriores.update(conductor=None)
-                    messages.warning(request, f"El conductor {conductor.nombre} fue desvinculado de sus otros vehículos.")
+                    messages.warning(request, f"El conductor {conductor.nombre} fue desvinculado de otros vehículos.")
 
                 vehiculo.conductor = conductor
             else:
                 vehiculo.conductor = None
                 
             vehiculo.save()
-            messages.success(request, f"Asignación actualizada para {vehiculo.patente}.")
+            messages.success(request, f"Asignación actualizada.")
             
         return redirect('panel_vehiculos')
 
@@ -196,8 +190,9 @@ def panel_vehiculos(request):
 # --- RUTAS ---
 @login_required
 def panel_rutas(request):
-    hoy = timezone.now().date()
-    recorridos = Recorrido.objects.filter(fecha=hoy, hora_fin__isnull=True).select_related('vehiculo', 'conductor')
+    recorridos = Recorrido.objects.filter(
+        hora_fin__isnull=True 
+    ).select_related('vehiculo', 'conductor')
     return render(request, 'PanelAdmin/rutas.html', {'recorridos': recorridos})
 
 # --- COMBUSTIBLE ---
@@ -213,7 +208,6 @@ def panel_combustible(request):
             costo = int(request.POST.get('costo'))
             vehiculo_obj = get_object_or_404(Vehiculo, id_vehiculo=id_vehiculo)
             
-            # Validaciones básicas
             if litros <= 0 or costo <= 0:
                 raise ValueError("Valores deben ser positivos")
 
@@ -226,7 +220,6 @@ def panel_combustible(request):
         except Exception as e:
             messages.error(request, f"Error al guardar: {e}")
 
-    # KPIs
     total_gasto = CargaCombustible.objects.aggregate(Sum('costo_total'))['costo_total__sum'] or 0
     total_litros = CargaCombustible.objects.aggregate(Sum('litros'))['litros__sum'] or 0
     total_registros = CargaCombustible.objects.count()
@@ -239,7 +232,7 @@ def panel_combustible(request):
     }
     return render(request, 'PanelAdmin/combustible.html', contexto)
 
-# --- REPORTES Y PDF ---
+# --- REPORTES ---
 @login_required
 def panel_reportes(request):
     fecha_inicio = request.GET.get('fecha_inicio')
@@ -301,14 +294,26 @@ def generar_pdf_reporte(request):
     if pisa_status.err: return HttpResponse('Error PDF')
     return response
 
-# --- ELIMINAR ---
+# --- ELIMINAR / FINALIZAR (CORREGIDO) ---
 @login_required
 def eliminar_ruta(request, id):
     if request.user.is_authenticated:
         try:
-            Recorrido.objects.get(id_recorrido=id).delete()
-            messages.success(request, "Ruta eliminada.")
-        except: messages.error(request, "Error al eliminar.")
+            # EN LUGAR DE BORRAR, FINALIZAMOS EL VIAJE
+            ruta = Recorrido.objects.get(id_recorrido=id)
+            ruta.fecha = timezone.now().date()
+            ruta.hora_fin = datetime.datetime.now().time()
+            ruta.ubicacion_fin_txt = "Finalizado Manualmente (Admin)"
+            if ruta.kilometraje_inicio:
+                ruta.kilometraje_fin = ruta.kilometraje_inicio # Cerrar con 0 km de diferencia
+            ruta.save()
+            
+            messages.success(request, "Ruta finalizada y archivada.")
+        except Recorrido.DoesNotExist:
+            messages.error(request, "La ruta no existe.")
+        except Exception as e:
+            messages.error(request, f"Error: {e}")
+            
     return redirect('panel_rutas')
 
 @login_required
@@ -325,34 +330,27 @@ def eliminar_combustible(request, id):
 def update_gps_location(request):
     if request.method == 'POST':
         try:
-            # INTENTO 1: Leer datos como JSON (Estándar para Apps Android)
             try:
                 data = json.loads(request.body)
             except json.JSONDecodeError:
-                # INTENTO 2: Leer como Formulario Web (Por si acaso)
                 data = request.POST
             
             patente_app = data.get('patente')
             latitud_app = data.get('latitud')
             longitud_app = data.get('longitud')
             
-            # Validación básica
             if not patente_app:
-                return JsonResponse({'status': 'error', 'message': 'Falta la patente'}, status=400)
-
-            # 1. Buscamos el vehículo
-            vehiculo = Vehiculo.objects.get(patente=patente_app)
+                return JsonResponse({'status': 'error', 'message': 'Falta patente'}, status=400)
             
-            # 2. Actualizamos las coordenadas
+            vehiculo = Vehiculo.objects.get(patente=patente_app)
             vehiculo.latitud = latitud_app
             vehiculo.longitud = longitud_app
             vehiculo.save()
             
             return JsonResponse({'status': 'success', 'message': 'Ubicación actualizada'}, status=200)
-            
         except Vehiculo.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': f'Patente {patente_app} no encontrada'}, status=404)
+            return JsonResponse({'status': 'error', 'message': 'Patente no encontrada'}, status=404)
         except Exception as e:
-            return JsonResponse({'status': 'error', 'message': f'Error interno: {e}'}, status=500)
+            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
     return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
